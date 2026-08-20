@@ -20,6 +20,10 @@ export const useNotesStore = defineStore('notes', () => {
     notes.value.splice(index, 1, note)
   }
 
+  function findById(id: string): Note | undefined {
+    return notes.value.find((item) => item.id === id)
+  }
+
   function remove(id: string) {
     const index = notes.value.findIndex((item) => item.id === id)
     if (index !== -1) {
@@ -31,5 +35,5 @@ export const useNotesStore = defineStore('notes', () => {
     persistFailed.value = value
   }
 
-  return { notes, persistFailed, load, upsert, remove, setPersistFailed }
+  return { notes, persistFailed, load, upsert, findById, remove, setPersistFailed }
 })
