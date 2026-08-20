@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
   ssr: false,
+  modules: ['@pinia/nuxt'],
   typescript: {
     strict: true,
   },
@@ -8,7 +9,6 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         scss: {
-          // переменные нужны почти в каждом scoped-блоке, инжектим их один раз
           additionalData: '@use "~/assets/styles/variables" as *;',
         },
       },
