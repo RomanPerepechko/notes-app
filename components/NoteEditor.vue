@@ -8,6 +8,7 @@ const {
   canUndo,
   canRedo,
   canDelete,
+  isDirty,
   setTitle,
   setTodoText,
   commitText,
@@ -20,6 +21,26 @@ const {
   cancel,
   remove,
 } = useNoteEditor(props.note)
+
+const confirmation = ref<'cancel' | 'delete' | undefined>()
+
+useHotkeys({ undo, redo })
+
+function askCancel() {
+  if (!isDirty.value) {
+    cancel()
+    return
+  }
+  confirmation.value = 'cancel'
+}
+
+function askDelete() {
+  confirmation.value = 'delete'
+}
+
+function closeConfirmation() {
+  confirmation.value = undefined
+}
 
 function onTitleInput(event: Event) {
   if (event.target instanceof HTMLInputElement) {
@@ -71,30 +92,56 @@ function onTodoInput(todoId: string, event: Event) {
     <div class="note-editor__actions">
       <button class="note-editor__button" type="button" @click="addTodo">Добавить пункт</button>
       <button
-        class="note-editor__button"
+        class="note-editor__button note-editor__button--icon"
         type="button"
         :disabled="!canUndo"
         title="Отменить действие (Ctrl+Z)"
+        aria-label="Отменить действие"
         @click="undo"
       >
-        Undo
+        <IconUndo />
       </button>
       <button
-        class="note-editor__button"
+        class="note-editor__button note-editor__button--icon"
         type="button"
         :disabled="!canRedo"
         title="Вернуть действие (Shift+Ctrl+Z)"
+        aria-label="Вернуть действие"
         @click="redo"
       >
-        Redo
+        <IconUndo class="note-editor__icon--mirrored" />
       </button>
     </div>
 
     <div class="note-editor__actions">
       <button class="note-editor__button note-editor__button--primary" type="button" @click="save">Сохранить</button>
-      <button class="note-editor__button" type="button" @click="cancel">Отменить</button>
-      <button v-if="canDelete" class="note-editor__button" type="button" @click="remove">Удалить</button>
+      <button class="note-editor__button" type="button" @click="askCancel">Отменить</button>
+      <button v-if="canDelete" class="note-editor__button" type="button" @click="askDelete">
+        Удалить
+      </button>
     </div>
+
+    <BaseModal
+      v-if="confirmation === 'cancel'"
+      title="Отменить правки?"
+      cancel-label="Продолжить"
+      confirm-label="Отменить правки"
+      @cancel="closeConfirmation"
+      @confirm="cancel"
+    >
+      Несохраненные изменения будут потеряны.
+    </BaseModal>
+
+    <BaseModal
+      v-if="confirmation === 'delete'"
+      title="Удалить заметку?"
+      cancel-label="Не удалять"
+      confirm-label="Удалить"
+      @cancel="closeConfirmation"
+      @confirm="remove"
+    >
+      Заметка и все ее пункты исчезнут без возможности вернуть.
+    </BaseModal>
   </div>
 </template>
 
@@ -171,6 +218,16 @@ function onTodoInput(todoId: string, event: Event) {
       background: $color-accent;
       color: $color-surface;
     }
+
+    &--icon {
+      display: flex;
+      align-items: center;
+      padding: $space-sm;
+    }
+  }
+
+  &__icon--mirrored {
+    transform: scaleX(-1);
   }
 }
 </style>

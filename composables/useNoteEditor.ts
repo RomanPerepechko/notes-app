@@ -13,10 +13,22 @@ export function useNoteEditor(note: Note) {
   const router = useRouter()
   const history = createHistory()
 
+  const initial = cloneNote(note)
   const draft = ref<Note>(cloneNote(note))
   const canUndo = ref(false)
   const canRedo = ref(false)
   const canDelete = computed(() => notesStore.findById(draft.value.id) !== undefined)
+
+  const isDirty = computed(() => {
+    const current = draft.value
+    if (current.title !== initial.title || current.todos.length !== initial.todos.length) {
+      return true
+    }
+    return current.todos.some((todo, index) => {
+      const before = initial.todos[index]
+      return todo.id !== before.id || todo.text !== before.text || todo.done !== before.done
+    })
+  })
 
   function refreshFlags() {
     canUndo.value = history.canUndo()
@@ -83,7 +95,6 @@ export function useNoteEditor(note: Note) {
     notesStore.remove(id)
   }
 
-  // уходя со страницы, гасим таймер незакрытого фрагмента
   onBeforeUnmount(history.reset)
 
   return {
@@ -91,6 +102,7 @@ export function useNoteEditor(note: Note) {
     canUndo,
     canRedo,
     canDelete,
+    isDirty,
     setTitle,
     setTodoText,
     commitText,
