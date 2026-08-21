@@ -8,16 +8,22 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@pinia/nuxt": "^1.0.2",
     "nuxt": "^3.21.11",
+    "pinia": "^4.0.3",
     "vue": "^3.5.41",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@types/node": "^26.2.0",
+    "jsdom": "^30.0.1",
     "sass-embedded": "^1.102.0",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
     "vue-tsc": "^3.3.10"
   }
 }
