@@ -7,8 +7,13 @@ const note = notesStore.findById(String(route.params.id))
 
 <template>
   <section>
-    <h1>Редактирование</h1>
-    <NoteEditor v-if="note !== undefined" :note="note" />
-    <p v-else>Заметка не найдена. <NuxtLink to="/">К списку</NuxtLink></p>
+    <template v-if="note !== undefined">
+      <h1>Редактирование</h1>
+      <NoteEditor :note="note" />
+    </template>
+    <template v-else>
+      <h1>Заметка не найдена</h1>
+      <p>Возможно, ее удалили. <NuxtLink to="/">Вернуться к списку</NuxtLink></p>
+    </template>
   </section>
 </template>

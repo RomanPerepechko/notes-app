@@ -75,6 +75,11 @@ function confirmDelete() {
     align-items: baseline;
     justify-content: space-between;
     gap: $space-sm;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 
   &__list {
@@ -98,11 +103,17 @@ function confirmDelete() {
     align-items: baseline;
     justify-content: space-between;
     gap: $space-sm;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 
   &__title {
     font-size: 18px;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   &__delete {
@@ -128,6 +139,7 @@ function confirmDelete() {
     display: flex;
     align-items: center;
     gap: $space-sm;
+    overflow-wrap: anywhere;
   }
 
   &__more {

@@ -25,6 +25,11 @@ const notesStore = useNotesStore()
     bottom: $space-md;
     left: $space-md;
     max-width: 420px;
+
+    @include mobile {
+      right: $space-md;
+    }
+
     padding: $space-sm $space-md;
     border: 1px solid $color-border;
     border-radius: $radius;

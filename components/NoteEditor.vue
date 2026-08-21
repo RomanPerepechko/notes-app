@@ -117,7 +117,7 @@ function onTodoInput(todoId: string, event: Event) {
       </button>
     </div>
 
-    <div class="note-editor__actions">
+    <div class="note-editor__actions note-editor__actions--main">
       <button class="note-editor__button note-editor__button--primary" type="button" @click="save">Сохранить</button>
       <button class="note-editor__button" type="button" @click="askCancel">Отменить</button>
       <button v-if="canDelete" class="note-editor__button" type="button" @click="askDelete">
@@ -223,6 +223,13 @@ function onTodoInput(todoId: string, event: Event) {
     display: flex;
     flex-wrap: wrap;
     gap: $space-sm;
+
+    &--main {
+      @include mobile {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
   }
 
   &__button {

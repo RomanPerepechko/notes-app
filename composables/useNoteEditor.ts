@@ -6,9 +6,22 @@ import type { Note, TodoItem } from '~/types/note'
 import { NEW_NOTE_DRAFT_ID, clearDraft, readDraft, writeDraft } from '~/utils/storage'
 
 const DRAFT_DEBOUNCE_MS = 1000
+const FALLBACK_TITLE = 'Без названия'
 
 function cloneNote(note: Note): Note {
   return { ...note, todos: note.todos.map((todo) => ({ ...todo })) }
+}
+
+function prepareForSave(note: Note): Note {
+  const title = note.title.trim()
+  return {
+    id: note.id,
+    title: title === '' ? FALLBACK_TITLE : title,
+    todos: note.todos
+      .filter((todo) => todo.text.trim() !== '')
+      .map((todo) => ({ ...todo, text: todo.text.trim() })),
+    updatedAt: Date.now(),
+  }
 }
 
 function hasSameContent(one: Note, other: Note): boolean {
@@ -145,7 +158,7 @@ export function useNoteEditor(note: Note) {
   function save() {
     stopDraftTimer()
     history.reset()
-    notesStore.upsert({ ...cloneNote(draft.value), updatedAt: Date.now() })
+    notesStore.upsert(prepareForSave(draft.value))
     clearDraft()
     router.push('/')
   }
