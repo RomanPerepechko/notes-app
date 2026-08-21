@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ title: string; confirmLabel: string; cancelLabel: string }>()
+defineProps<{ title: string; confirmLabel: string; cancelLabel?: string }>()
 
 const emit = defineEmits<{ confirm: []; cancel: [] }>()
 
@@ -95,7 +95,12 @@ onBeforeUnmount(() => {
         <h2 :id="titleId" class="base-modal__title">{{ title }}</h2>
         <p class="base-modal__text"><slot /></p>
         <div class="base-modal__actions">
-          <button class="base-modal__button" type="button" @click="emit('cancel')">
+          <button
+            v-if="cancelLabel !== undefined"
+            class="base-modal__button"
+            type="button"
+            @click="emit('cancel')"
+          >
             {{ cancelLabel }}
           </button>
           <button

@@ -1,8 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Note } from '~/types/note'
-import { migrate, readState, writeState } from '~/utils/storage'
+import {
+  clearDraft,
+  migrate,
+  readDraft,
+  readState,
+  writeDraft,
+  writeState,
+} from '~/utils/storage'
 
 const DATA_KEY = 'notes-app:data'
+const DRAFT_KEY = 'notes-app:draft'
 
 function makeNote(): Note {
   return {
@@ -110,5 +118,70 @@ describe('readState / writeState', () => {
     })
 
     expect(readState()).toEqual({ version: 1, notes: [] })
+  })
+})
+
+describe('черновик', () => {
+  it('записанный черновик читается обратно вместе с адресом', () => {
+    const note = makeNote()
+
+    expect(writeDraft('n1', note)).toBe(true)
+
+    const draft = readDraft()
+    expect(draft?.noteId).toBe('n1')
+    expect(draft?.note).toEqual(note)
+    expect(typeof draft?.savedAt).toBe('number')
+  })
+
+  it('черновик экрана создания адресуется не идентификатором', () => {
+    writeDraft('new', makeNote())
+
+    expect(readDraft()?.noteId).toBe('new')
+  })
+
+  it('пустое хранилище черновика не дает', () => {
+    expect(readDraft()).toBeUndefined()
+  })
+
+  it('мусор и чужая версия дают отсутствие черновика, а не исключение', () => {
+    const garbage: unknown[] = [
+      42,
+      'draft',
+      {},
+      { version: 1, noteId: 'n1' },
+      { version: 2, noteId: 'n1', note: makeNote(), savedAt: 1 },
+      { version: 1, noteId: 1, note: makeNote(), savedAt: 1 },
+      { version: 1, noteId: 'n1', note: { id: 'n1' }, savedAt: 1 },
+      { version: 1, noteId: 'n1', note: makeNote(), savedAt: 'вчера' },
+    ]
+
+    for (const raw of garbage) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(raw))
+      expect(readDraft()).toBeUndefined()
+    }
+  })
+
+  it('битый JSON черновика не роняет чтение', () => {
+    localStorage.setItem(DRAFT_KEY, '{"version":1,"noteId":')
+
+    expect(readDraft()).toBeUndefined()
+  })
+
+  it('clearDraft убирает черновик, данные не трогает', () => {
+    writeState([makeNote()])
+    writeDraft('n1', makeNote())
+
+    clearDraft()
+
+    expect(readDraft()).toBeUndefined()
+    expect(readState().notes).toHaveLength(1)
+  })
+
+  it('недоступная запись черновика отдает false и не бросает', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+
+    expect(writeDraft('n1', makeNote())).toBe(false)
   })
 })

@@ -9,8 +9,23 @@ export interface PersistedState {
   notes: Note[]
 }
 
-const DATA_KEY = 'notes-app:data'
+// Черновик редактора живет отдельным ключом со своей оберткой: он короче
+// данных по времени жизни, и при непонятной форме его молча выбрасывают,
+// а не пытаются восстановить.
+export interface PersistedDraft {
+  version: 1
+  noteId: string
+  note: Note
+  savedAt: number
+}
+
+export const DATA_KEY = 'notes-app:data'
+const DRAFT_KEY = 'notes-app:draft'
 const SCHEMA_VERSION = 1
+
+// экран создания заметки один, а id новой заметки в каждом заходе свой, поэтому
+// его черновик адресуется не идентификатором
+export const NEW_NOTE_DRAFT_ID = 'new'
 
 function emptyState(): PersistedState {
   return { version: SCHEMA_VERSION, notes: [] }
@@ -88,5 +103,51 @@ export function writeState(notes: Note[]): boolean {
     return true
   } catch {
     return false
+  }
+}
+
+function isPersistedDraft(value: unknown): value is PersistedDraft {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'version' in value &&
+    value.version === SCHEMA_VERSION &&
+    'noteId' in value &&
+    typeof value.noteId === 'string' &&
+    'savedAt' in value &&
+    typeof value.savedAt === 'number' &&
+    'note' in value &&
+    isNote(value.note)
+  )
+}
+
+export function readDraft(): PersistedDraft | undefined {
+  try {
+    const text = localStorage.getItem(DRAFT_KEY)
+    if (text === null) {
+      return undefined
+    }
+    const raw: unknown = JSON.parse(text)
+    return isPersistedDraft(raw) ? raw : undefined
+  } catch {
+    return undefined
+  }
+}
+
+export function writeDraft(noteId: string, note: Note): boolean {
+  const draft: PersistedDraft = { version: SCHEMA_VERSION, noteId, note, savedAt: Date.now() }
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // приватный режим умеет запрещать и удаление, ронять на этом редактор незачем
   }
 }

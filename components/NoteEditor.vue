@@ -9,6 +9,10 @@ const {
   canRedo,
   canDelete,
   isDirty,
+  restorable,
+  deletedElsewhere,
+  restoreDraft,
+  discardDraft,
   setTitle,
   setTodoText,
   commitText,
@@ -122,7 +126,28 @@ function onTodoInput(todoId: string, event: Event) {
     </div>
 
     <BaseModal
-      v-if="confirmation === 'cancel'"
+      v-if="deletedElsewhere"
+      title="Заметка была удалена в другой вкладке"
+      confirm-label="Вернуться к списку"
+      @cancel="cancel"
+      @confirm="cancel"
+    >
+      Восстановить ее здесь уже нечем: правки этой вкладки не сохранить.
+    </BaseModal>
+
+    <BaseModal
+      v-else-if="restorable !== undefined"
+      title="Восстановить несохраненные изменения?"
+      cancel-label="Отбросить"
+      confirm-label="Восстановить"
+      @cancel="discardDraft"
+      @confirm="restoreDraft"
+    >
+      С прошлого раза остались правки, не дошедшие до сохранения.
+    </BaseModal>
+
+    <BaseModal
+      v-else-if="confirmation === 'cancel'"
       title="Отменить правки?"
       cancel-label="Продолжить"
       confirm-label="Отменить правки"
@@ -133,7 +158,7 @@ function onTodoInput(todoId: string, event: Event) {
     </BaseModal>
 
     <BaseModal
-      v-if="confirmation === 'delete'"
+      v-else-if="confirmation === 'delete'"
       title="Удалить заметку?"
       cancel-label="Не удалять"
       confirm-label="Удалить"
